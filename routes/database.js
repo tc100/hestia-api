@@ -2,7 +2,7 @@ var mongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var properties = require('../properties/dbproperties');
 
-var connect = function(callback){
+exports.connect = function(callback){
   var url = properties.url;
   console.log("teste: " + url);
 
