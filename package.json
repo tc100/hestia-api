@@ -1,0 +1,22 @@
+{
+  "name": "hestia-api",
+  "version": "1.0.0",
+  "description": "Api usada no projeto Hestia",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tc100/hestia-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tc100/hestia-api/issues"
+  },
+  "homepage": "https://github.com/tc100/hestia-api#readme",
+  "dependencies": {
+    "mongodb": "^2.1.18"
+  }
+}
