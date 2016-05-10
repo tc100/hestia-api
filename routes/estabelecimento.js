@@ -1,9 +1,6 @@
-var database = require('./api');
+var database = require('./database');
+var api = require('./api');
 
-exports.fazerCadastro = function() {
-
-  return "HELLO";
-};
 
 
 /**
@@ -14,7 +11,7 @@ exports.fazerCadastro = function() {
  * @param   {}      res
  */
 function findEstabelecimento(query, res) {
-	database.find('estabelecimento', query, function (err, resources) {
+	api.find('estabelecimento', query, function (err, resources) {
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(query));
 	});
@@ -28,8 +25,23 @@ function findEstabelecimento(query, res) {
  * @param   {}      res
 */
 var insertEstabelecimento = function (resource, res) {
-	database.insert('estabelecimento', resource, function (err, resource) {
+	api.insert('estabelecimento', resource, function (err, resource) {
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(resource));
 	});
+};
+
+exports.fazerCadastro = function (resource, res) {
+  database.connect(function (db) {
+
+    var collection = db.collection("estabelecimento");
+    collection.insert(resource, function(err, result) {
+        if(!err){
+        console.log("Adicionado em estabelecimento com sucesso: " + JSON.stringify(result));
+        }else{
+          console.log("Erro ao adicionar");
+        }
+        db.close();
+    });
+  })
 };
