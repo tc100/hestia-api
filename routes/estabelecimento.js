@@ -33,7 +33,7 @@ var insertEstabelecimento = function (resource, res) {
 
 exports.fazerCadastro = function (resource, res) {
   database.connect(function (db) {
-
+		console.log("db: " + db);
     var collection = db.collection("estabelecimento");
     collection.insert(resource, function(err, result) {
         if(!err){
@@ -43,5 +43,13 @@ exports.fazerCadastro = function (resource, res) {
         }
         db.close();
     });
-  })
+  })/*
+	api.insert('estabelecimento', resource, function(err,resource){
+		if(!err){
+			console.log("Adicionado em estabelecimento com sucesso: " + JSON.stringify(resource));
+
+		}else{
+			console.log("Erro ao adicionar");
+		}
+	})*/
 };

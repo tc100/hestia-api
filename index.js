@@ -9,7 +9,11 @@ var funcionario = require('./routes/funcionario');
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
      var path = parsedURL.pathname;
+     console.log("path: " + JSON.stringify(parsedURL));
      var query = parsedURL.query;
+     console.log("query: " + JSON.stringify(query));
+     var teste = JSON.parse(query.cadastro);
+
      switch (path) {
        case '/apihestia/estabelecimento':
            if (query != null) {
