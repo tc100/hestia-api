@@ -17,7 +17,11 @@ var server = http.createServer(function (req, res) {
      switch (path) {
        case '/apihestia/estabelecimento':
            if (query != null) {
-              estabelecimento.fazerCadastro(query);
+              var cadastro = JSON.parse(query.cadastro);
+              var funcionario = JSON.parse(query.funcionario);
+              //console.log("funcionario: "+query.funcionario);
+              funcionario.insertFuncionario(funcionario);
+              estabelecimento.fazerCadastro(cadastro);
               res.writeHead(200);
               res.end("OK");
            }

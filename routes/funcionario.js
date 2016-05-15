@@ -1,4 +1,5 @@
 var database = require('./api');
+var database = require('./database');
 /**
  * Esta é uma função que executa a busca (GET)
  * de dados de uma coleção - passa por parametro de acordo com a query
@@ -20,9 +21,23 @@ function findFuncionario(query, res) {
  * @param   {JSON}  resource  Conjunto de dados JSON que irá ser inserido
  * @param   {}      res
 */
-var insertFuncionario = function (resource, res) {
+/*exports.insertFuncionario = function (resource, res) {
 	database.insert('funcionario', resource, function (err, resource) {
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(resource));
 	});
+};*/
+exports.insertFuncionario = function (resource, res) {
+  database.connect(function (db) {
+
+    var collection = db.collection("funcionario");
+    collection.insert(resource, function(err, result) {
+        if(!err){
+        console.log("Adicionado em funcionario com sucesso: " + JSON.stringify(result));
+        }else{
+          console.log("Erro ao adicionar");
+        }
+        db.close();
+    });
+  })
 };
