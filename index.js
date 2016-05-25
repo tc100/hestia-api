@@ -9,18 +9,19 @@ var funcionario = require('./routes/funcionario');
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
      var path = parsedURL.pathname;
-     console.log("path: " + JSON.stringify(parsedURL));
+     //console.log("path: " + JSON.stringify(parsedURL));
      var query = parsedURL.query;
-     console.log("query: " + JSON.stringify(query));
-     var teste = JSON.parse(query.cadastro);
+     //console.log("query: " + JSON.stringify(query));
+    // var teste = JSON.parse(query.cadastro);
 
      switch (path) {
        case '/apihestia/estabelecimento':
            if (query != null) {
               var cadastro = JSON.parse(query.cadastro);
-              var funcionario = JSON.parse(query.funcionario);
-              //console.log("funcionario: "+query.funcionario);
-              funcionario.insertFuncionario(funcionario);
+              var funcionarioIns = JSON.parse(query.funcionario);
+              console.log("funcionario: "+JSON.stringify(funcionarioIns));
+              console.log("estabelecimento: "+JSON.stringify(cadastro));
+              funcionario.inserirFuncionario(funcionarioIns);
               estabelecimento.fazerCadastro(cadastro);
               res.writeHead(200);
               res.end("OK");

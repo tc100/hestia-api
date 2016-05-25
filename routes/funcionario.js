@@ -1,5 +1,8 @@
-var database = require('./api');
 var database = require('./database');
+var api = require('./api');
+
+
+
 /**
  * Esta é uma função que executa a busca (GET)
  * de dados de uma coleção - passa por parametro de acordo com a query
@@ -8,7 +11,7 @@ var database = require('./database');
  * @param   {}      res
  */
 function findFuncionario(query, res) {
-	database.find('funcionario', query, function (err, resources) {
+	api.find('funcionario', query, function (err, resources) {
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(query));
 	});
@@ -21,15 +24,16 @@ function findFuncionario(query, res) {
  * @param   {JSON}  resource  Conjunto de dados JSON que irá ser inserido
  * @param   {}      res
 */
-/*exports.insertFuncionario = function (resource, res) {
-	database.insert('funcionario', resource, function (err, resource) {
+var insertFuncionario = function (resource, res) {
+	api.insert('funcionario', resource, function (err, resource) {
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(resource));
 	});
-};*/
-exports.insertFuncionario = function (resource, res) {
-  database.connect(function (db) {
+};
 
+exports.inserirFuncionario = function (resource, res) {
+  database.connect(function (db) {
+		console.log("db: " + db);
     var collection = db.collection("funcionario");
     collection.insert(resource, function(err, result) {
         if(!err){
@@ -39,5 +43,13 @@ exports.insertFuncionario = function (resource, res) {
         }
         db.close();
     });
-  })
+  })/*
+	api.insert('estabelecimento', resource, function(err,resource){
+		if(!err){
+			console.log("Adicionado em estabelecimento com sucesso: " + JSON.stringify(resource));
+
+		}else{
+			console.log("Erro ao adicionar");
+		}
+	})*/
 };
