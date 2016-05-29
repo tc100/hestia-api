@@ -5,7 +5,11 @@ var properties = require('../properties/dbproperties');
 exports.connect = function(callback){
   var url = properties.url;
   mongoClient.connect(url, function(error, database){
-    console.log("Connected to database");
-    callback(database);
+  	if(!error){
+    	callback(database);
+    }else{
+  		console.log("erro: " + error);
+  		callback(null);
+  	}
   });
 };

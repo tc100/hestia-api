@@ -1,11 +1,84 @@
 var http = require('http');
+var express = require('express');
 var URL = require('url');
+var bodyParser = require('body-parser');
 
+var app = express();
 //rotas
 var estabelecimento = require('./routes/estabelecimento');
 var cardapio = require('./routes/cardapio');
 var funcionario = require('./routes/funcionario');
+var mongodb = require('./routes/database');
 
+var db;
+var server;
+var collections = {
+  "estabelecimento": "estabelecimento",
+  "funcionario": "funcionario",
+  "cardapio": "cardapio"
+};
+
+mongodb.connect(function(database){
+  if(database != null){
+    db = database;
+    server = app.listen(8080, function(){
+      console.log('Up, running and ready for action!');
+    });
+  }else{
+    console.log("Não conectou no banco");
+  }
+});
+
+
+//CAMINHOS PARA REQUISIÇÕES
+
+
+//Cadastro do estabelecimento e primeiro funcionario
+app.post('/apihestia/estabelecimento', function(req,res){
+  
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var idEstabelecimento;
+  var idFuncionario;
+
+  
+//ADD ESTABELECIMENTO
+  var infoEstabelecimento = JSON.parse(params.cadastro);
+  var infoFuncionario = JSON.parse(params.funcionario);
+  var collection = db.collection(collections.estabelecimento);
+  collection.insertOne(infoEstabelecimento, function(err, result) {
+    if(!err){
+      idEstabelecimento = result.insertedId;
+      //ADD FUNCIONARIO
+      infoFuncionario.restaurante = idEstabelecimento;
+      collectionFunc = db.collection(collections.funcionario);
+      collectionFunc.insertOne(infoFuncionario, function(errFunc, resultFunc) {
+        if(!errFunc){
+          idFuncionario = resultFunc.insertedId;
+          var funcionarios = [];
+          funcionarios.push(idFuncionario);
+          collection.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+            if(!errPut){
+              console.log("Cadastro Realizado com sucesso !");
+              res.status(201).send("Cadastrado");
+            }else{
+              console.log("erro: " + errPut);
+              res.status(400).send("Fail");
+            }
+          });
+        }else{
+          console.log("Erro ao adicionar: " + errFunc);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao adicionar: " + err);
+      res.status(400).send("Fail");
+    }
+  });
+
+});
+/*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
      var path = parsedURL.pathname;
@@ -38,9 +111,9 @@ var server = http.createServer(function (req, res) {
         res.writeHead(400);
         res.end('Caminho não encontrado !');
     }
-});
+});*/
 
 
 
-server.listen(8080);
-console.log('Up, running and ready for action!');
+
+
