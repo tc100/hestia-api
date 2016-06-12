@@ -35,13 +35,12 @@ mongodb.connect(function(database){
 
 //Cadastro do estabelecimento e primeiro funcionario
 app.post('/apihestia/estabelecimento', function(req,res){
-  
+
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var idEstabelecimento;
   var idFuncionario;
 
-  
 //ADD ESTABELECIMENTO
   var infoEstabelecimento = JSON.parse(params.cadastro);
   var infoFuncionario = JSON.parse(params.funcionario);
@@ -78,6 +77,30 @@ app.post('/apihestia/estabelecimento', function(req,res){
   });
 
 });
+
+app.get('/apihestia/login', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.funcionario);
+  collection.findOne(JSON.parse(params.login),function(err,item){
+    if(!err){
+      if(!item){
+        console.log("Usuario nao autorizado");
+        res.status(404).send("NOTAUTHORIZED")
+      }
+      console.log("Usuario autorizado");
+      var aux={
+        nome: item.nome,
+        restaurante: item.restaurante
+      }
+      res.status(302).send(aux);
+    }else{
+      console.log("err: " + err);
+      res.send(404).send("ERROR");
+    }
+  })
+});
+
 /*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
@@ -112,8 +135,3 @@ var server = http.createServer(function (req, res) {
         res.end('Caminho não encontrado !');
     }
 });*/
-
-
-
-
-
