@@ -91,14 +91,14 @@ app.post('/apihestia/funcionario', function(req,res){
   collection.insertOne(dados, function(error, result){
     if(!error){
       var idFuncionario = result.insertedId;
-      collection = db.collection(collections.estabelecimento);
+      collection2 = db.collection(collections.estabelecimento);
       console.log("teste: " + idEstabelecimento);
-      collection.findOne({_id: idEstabelecimento},function(err,result){
+      collection2.findOne({_id: idEstabelecimento},function(err,result){
         console.log("teste: " + JSON.stringify(result));
         console.log("error: " + JSON.stringify(err));
         var funcionarios = [];
         funcionarios.push(idFuncionario);
-        collection.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+        collection2.updateOne({_id: idEstabelecimento}, {$addToSet: {funcionarios: funcionarios} }, function(errPut, resultPut) {
           if(!errPut){
             console.log("Cadastro Realizado com sucesso !");
             res.status(201).send("Cadastrado");
