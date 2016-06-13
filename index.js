@@ -39,12 +39,11 @@ app.post('/apihestia/estabelecimento', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var idEstabelecimento;
-  var idFuncionario;
-
 //ADD ESTABELECIMENTO
   var infoEstabelecimento = JSON.parse(params.cadastro);
   var infoFuncionario = JSON.parse(params.funcionario);
   var collection = db.collection(collections.estabelecimento);
+  console.log("TESTE: " + JSON.stringify(infoEstabelecimento));
   collection.insertOne(infoEstabelecimento, function(err, result) {
     if(!err){
       idEstabelecimento = result.insertedId;
@@ -53,10 +52,15 @@ app.post('/apihestia/estabelecimento', function(req,res){
       collectionFunc = db.collection(collections.funcionario);
       collectionFunc.insertOne(infoFuncionario, function(errFunc, resultFunc) {
         if(!errFunc){
-          idFuncionario = resultFunc.insertedId;
+          var nomeFuncionario = infoFuncionario.nome;
+          var idFuncionario = resultFunc.insertedId;
+          var func = {
+            "nome": nomeFuncionario,
+            "id": idFuncionario
+          };
           var funcionarios = [];
-          funcionarios.push(idFuncionario);
-          collection.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+          funcionarios.push(func);
+          collection.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios}}, function(errPut, resultPut) {
             if(!errPut){
               console.log("Cadastro Realizado com sucesso !");
               res.status(201).send("Cadastrado");
@@ -78,6 +82,39 @@ app.post('/apihestia/estabelecimento', function(req,res){
 
 });
 
+app.post('/apihestia/funcionario', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.funcionario);
+  var dados = JSON.parse(params.dados);
+  var idEstabelecimento = dados.restaurante;
+  collection.insertOne(dados, function(error, result){
+    if(!error){
+      var idFuncionario = result.insertedId;
+      collection = db.collection(collections.estabelecimento);
+      console.log("teste: " + idEstabelecimento);
+      collection.findOne({_id: idEstabelecimento},function(err,result){
+        console.log("teste: " + JSON.stringify(result));
+        console.log("error: " + JSON.stringify(err));
+        var funcionarios = [];
+        funcionarios.push(idFuncionario);
+        collection.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+          if(!errPut){
+            console.log("Cadastro Realizado com sucesso !");
+            res.status(201).send("Cadastrado");
+          }else{
+            console.log("Erro ao cadastrar: " + errPut);
+            res.status(400).send("Fail");
+          }
+        });
+      });
+    }else{
+      console.log("Erro ao cadastrar: " + errFunc);
+      res.status(400).send("Fail");
+    }
+  });
+});
+
 app.get('/apihestia/login', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
@@ -87,13 +124,14 @@ app.get('/apihestia/login', function(req,res){
       if(!item){
         console.log("Usuario nao autorizado");
         res.status(404).send("NOTAUTHORIZED")
+      }else{
+        console.log("Usuario autorizado");
+        var aux={
+          nome: item.nome,
+          restaurante: item.restaurante
+        }
+        res.status(302).send(aux);
       }
-      console.log("Usuario autorizado");
-      var aux={
-        nome: item.nome,
-        restaurante: item.restaurante
-      }
-      res.status(302).send(aux);
     }else{
       console.log("err: " + err);
       res.send(404).send("ERROR");
