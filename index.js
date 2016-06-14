@@ -48,7 +48,7 @@ app.post('/apihestia/estabelecimento', function(req,res){
     if(!err){
       idEstabelecimento = result.insertedId;
       //ADD FUNCIONARIO
-      infoFuncionario.restaurante = idEstabelecimento;
+      infoFuncionario.restaurante = infoEstabelecimento.cnpj;
       collectionFunc = db.collection(collections.funcionario);
       collectionFunc.insertOne(infoFuncionario, function(errFunc, resultFunc) {
         if(!errFunc){
@@ -91,22 +91,32 @@ app.post('/apihestia/funcionario', function(req,res){
   collection.insertOne(dados, function(error, result){
     if(!error){
       var idFuncionario = result.insertedId;
+
       collection2 = db.collection(collections.estabelecimento);
-      console.log("teste: " + idEstabelecimento);
-      collection2.findOne({_id: idEstabelecimento},function(err,result){
-        console.log("teste: " + JSON.stringify(result));
-        console.log("error: " + JSON.stringify(err));
-        var funcionarios = [];
-        funcionarios.push(idFuncionario);
-        collection2.updateOne({_id: idEstabelecimento}, {$addToSet: {funcionarios: funcionarios} }, function(errPut, resultPut) {
-          if(!errPut){
-            console.log("Cadastro Realizado com sucesso !");
-            res.status(201).send("Cadastrado");
-          }else{
-            console.log("Erro ao cadastrar: " + errPut);
-            res.status(400).send("Fail");
+      collection2.findOne({cnpj: idEstabelecimento},function(err,result){
+        if(!err){
+          var funcionarios = [];
+          var func = {
+            "nome": dados.nome,
+            "id": idFuncionario
+          };
+          for(x in result.funcionarios){
+            funcionarios.push(result.funcionarios[x]);
           }
-        });
+          funcionarios.push(func);
+          collection2.updateOne({cnpj: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+            if(!errPut){
+              console.log("Cadastro Realizado com sucesso !");
+              res.status(201).send("Cadastrado");
+            }else{
+              console.log("Erro ao cadastrar: " + errPut);
+              res.status(400).send("Fail");
+            }
+          });
+        }else{
+          console.log("Erro ao cadastrar: " + errPut);
+          res.status(400).send("Fail");
+        }
       });
     }else{
       console.log("Erro ao cadastrar: " + errFunc);
@@ -129,7 +139,7 @@ app.get('/apihestia/login', function(req,res){
         var aux={
           nome: item.nome,
           restaurante: item.restaurante
-        }
+        };
         res.status(302).send(aux);
       }
     }else{
