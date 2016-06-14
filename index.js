@@ -163,6 +163,22 @@ app.get('/apihestia/getFuncs', function(req,res){
   });
 });
 
+app.get('/apihestia/getFuncionario', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.funcionario);
+  var ObjectID = require('mongodb').ObjectID;
+  var o_id = new ObjectID(params.id);
+  collection.findOne({_id: o_id}, function(err,item){
+    if(!err){
+      res.status(302).send(item);
+    }else{
+      console.log("error: " + err);
+      res.send(404).send("ERROR");
+    }
+  });
+});
+
 /*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
