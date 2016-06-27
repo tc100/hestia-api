@@ -179,6 +179,48 @@ app.get('/apihestia/getFuncionario', function(req,res){
   });
 });
 
+app.delete('/apihestia/funcionario/delete', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.funcionario);
+  var idFuncionario = params.id;
+  var cnpj = params.cnpj;
+  var ObjectID = require('mongodb').ObjectID;
+  var o_id = new ObjectID(idFuncionario);
+  collection.updateOne({_id: o_id}, {$set: {ativo: false} }, function(errPut, resultPut) {
+    if(!errPut){
+      var collection2 = db.collection(collections.estabelecimento);
+      collection2.findOne({cnpj:cnpj}, function(err, item){
+        if(!err){
+          for(x in item.funcionarios){
+            if(item.funcionarios[x].id == idFuncionario){
+              item.funcionarios[x].ativo = false;
+              break;
+            }
+          }
+          collection2.updateOne({cnpj: cnpj}, {$set: {funcionarios: item.funcionarios} }, function(errPut2, resultPut2) {
+            if(!errPut2){
+              console.log("funcionario desativado");
+              res.status(201).send("desativado");
+            }else{
+              console.log("Erro ao desativar funcionario: " + errPut2);
+              res.status(400).send("Fail");
+            }
+          });
+        }
+        else{
+          console.log("Erro ao desativar funcionario: " + errPut2);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao desativar funcionario: " + errPut2);
+      res.status(400).send("Fail");
+    }
+
+  });
+});
+
 app.put('/apihestia/funcionario/editar', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
