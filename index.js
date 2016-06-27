@@ -179,6 +179,67 @@ app.get('/apihestia/getFuncionario', function(req,res){
   });
 });
 
+app.put('/apihestia/funcionario/editar', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.funcionario);
+  var dados = JSON.parse(params.dados);
+  var flag = false;
+  var ObjectID = require('mongodb').ObjectID;
+  var o_id = new ObjectID(dados.id);
+  var restauranteId;
+  collection.findOne({_id: o_id}, function(err,item){
+    if(!err){
+      if(item.nome != dados.nome){
+        restauranteId = item.restaurante.toString();
+        flag = true;
+      }
+      collection.updateOne({_id: o_id}, {$set: {nome: dados.nome, login: dados.login, senha: dados.senha} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Alterado com sucesso ! "+ resultPut);
+          if(flag){
+            var collection2 = db.collection(collections.estabelecimento);
+            collection2.findOne({cnpj: restauranteId}, function(err2,item2){
+              if(!err){
+                for(x in item2.funcionarios){
+                  if(item.nome == item2.funcionarios[x].nome){
+                    item2.funcionarios.splice(x,1);
+                    var func = {
+                      'nome': dados.nome,
+                      'id': dados.id
+                    };
+                    item2.funcionarios.push(func);
+                  }
+                }
+                collection2.updateOne({cnpj: restauranteId}, {$set: {funcionarios: item2.funcionarios}}, function(errPut2, resultPut2) {
+                  if(!err){
+                    console.log("estabelecimento alterado");
+                    res.status(201).send("Alterado");
+                  }else{
+                    console.log("Erro ao achar estabelecimento: " + errPut2);
+                    res.status(400).send("Fail");
+                  }
+                });
+              }else{
+                console.log("Erro ao achar estabelecimento: " + err2);
+                res.status(400).send("Fail");
+              }
+            });
+          }else{
+            res.status(201).send("Alterado");
+          }
+        }else{
+          console.log("Erro ao Alterar funcionario: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("error: " + err);
+      res.send(404).send("ERROR");
+    }
+  });
+})
+
 /*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
