@@ -198,6 +198,7 @@ app.delete('/apihestia/funcionario/delete', function(req,res){
           for(x in item.funcionarios){
             if(item.funcionarios[x].id == idFuncionario){
               item.funcionarios[x].ativo = false;
+              item.funcionarios[x].hora_inativo = new Date().getTime();
               break;
             }
           }
