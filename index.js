@@ -2,6 +2,7 @@ var http = require('http');
 var express = require('express');
 var URL = require('url');
 var bodyParser = require('body-parser');
+var _ = require("underscore");
 
 var app = express();
 //rotas
@@ -43,12 +44,11 @@ app.post('/apihestia/estabelecimento', function(req,res){
   var infoEstabelecimento = JSON.parse(params.cadastro);
   var infoFuncionario = JSON.parse(params.funcionario);
   var collection = db.collection(collections.estabelecimento);
-  console.log("TESTE: " + JSON.stringify(infoEstabelecimento));
   collection.insertOne(infoEstabelecimento, function(err, result) {
     if(!err){
       idEstabelecimento = result.insertedId;
       //ADD FUNCIONARIO
-      infoFuncionario.restaurante = infoEstabelecimento.cnpj;
+      infoFuncionario.restaurante = infoEstabelecimento._id;
       collectionFunc = db.collection(collections.funcionario);
       collectionFunc.insertOne(infoFuncionario, function(errFunc, resultFunc) {
         if(!errFunc){
@@ -87,13 +87,14 @@ app.post('/apihestia/funcionario', function(req,res){
   var params = parsedURL.query;
   var collection = db.collection(collections.funcionario);
   var dados = JSON.parse(params.dados);
-  var idEstabelecimento = dados.restaurante;
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(dados.restaurante);
   collection.insertOne(dados, function(error, result){
     if(!error){
       var idFuncionario = result.insertedId;
 
       collection2 = db.collection(collections.estabelecimento);
-      collection2.findOne({cnpj: idEstabelecimento},function(err,result){
+      collection2.findOne({_id: idEstabelecimento},function(err,result){
         if(!err){
           var funcionarios = [];
           var func = {
@@ -104,7 +105,7 @@ app.post('/apihestia/funcionario', function(req,res){
             funcionarios.push(result.funcionarios[x]);
           }
           funcionarios.push(func);
-          collection2.updateOne({cnpj: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
+          collection2.updateOne({_id: idEstabelecimento}, {$set: {funcionarios: funcionarios} }, function(errPut, resultPut) {
             if(!errPut){
               console.log("Cadastro Realizado com sucesso !");
               res.status(201).send("Cadastrado");
@@ -153,7 +154,9 @@ app.get('/apihestia/getFuncs', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
-  collection.findOne({cnpj: params.cnpj}, function(err,item){
+  var ObjectID = require('mongodb').ObjectID;
+  var o_id = new ObjectID(params.id);
+  collection.findOne({_id: o_id}, function(err,item){
     if(!err){
       res.status(302).send(item);
     }else{
@@ -282,6 +285,124 @@ app.put('/apihestia/funcionario/editar', function(req,res){
   });
 })
 
+app.post("/apihestia/cardapio/novo", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var jsonCardapio = {};
+      jsonCardapio.nome = params.cardapio;
+      jsonCardapio.pratos = [];
+      jsonCardapio.acompanhamentos = [];
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      arrayCardapio.push(jsonCardapio);
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Cadastro de cardapio Realizado com sucesso !");
+          res.status(201).send("Cadastrado");
+        }else{
+          console.log("Erro ao cadastrar cardapio: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao cadastrar cardapio: " + errPut);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
+//get all cardapios
+app.get("/apihestia/cardapios", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      res.status(201).send(arrayCardapio);
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+});
+
+//get one cardapio
+app.get("/apihestia/cardapio", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  var nomeCardapio = params.cardapio;
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio = "";
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      for(x in arrayCardapio){
+        if(_.filter(arrayCardapio[x], {nome: nomeCardapio})){
+          cardapio = arrayCardapio[x];
+          break;
+        }
+      }
+      res.status(201).send(cardapio);
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
+app.post("/apihestia/acompanhamento", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  var nomeCardapio = params.cardapio;
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio = "";
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      for(x in arrayCardapio){
+        if(_.filter(arrayCardapio[x], {nome: nomeCardapio})){
+          arrayCardapio[x].acompanhamentos.push(params.acompanhamento);
+          break;
+        }
+      }
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Cadastro de cardapio Realizado com sucesso !");
+          res.status(201).send("Cadastrado");
+        }else{
+          console.log("Erro ao cadastrar cardapio: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
 /*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
