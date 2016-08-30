@@ -340,7 +340,10 @@ app.post("/apihestia/cardapio/novo", function(req,res){
       var arrayCardapio = [];
       var jsonCardapio = {};
       jsonCardapio.nome = params.cardapio;
-      jsonCardapio.pratos = [];
+      jsonCardapio.categorias = [{
+        'nome': "Pratos Prinicipais",
+        'pratos': []
+      }];
       jsonCardapio.acompanhamentos = [];
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
         arrayCardapio = result.cardapios;
@@ -399,7 +402,7 @@ app.get("/apihestia/cardapio", function(req,res){
         arrayCardapio = result.cardapios;
       }
       for(x in arrayCardapio){
-        if(_.filter(arrayCardapio[x], {nome: nomeCardapio})){
+        if(arrayCardapio[x].nome == nomeCardapio){
           cardapio = arrayCardapio[x];
           break;
         }
@@ -427,7 +430,7 @@ app.post("/apihestia/acompanhamento", function(req,res){
         arrayCardapio = result.cardapios;
       }
       for(x in arrayCardapio){
-        if(_.filter(arrayCardapio[x], {nome: nomeCardapio})){
+        if(arrayCardapio[x].nome == nomeCardapio){
           arrayCardapio[x].acompanhamentos.push(params.acompanhamento);
           break;
         }
