@@ -198,6 +198,33 @@ app.get('/apihestia/getRestaurante', function(req,res){
   });
 });
 
+app.put('/apihestia/restaurante/editar', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var dados = JSON.parse(params.dados);
+  var flag = false;
+  var ObjectID = require('mongodb').ObjectID;
+  var o_id = new ObjectID(dados.id);
+  collection.findOne({_id: o_id}, function(err,item){
+    if(!err){
+      collection.updateOne({_id: o_id}, {$set: {nomerestaurante: dados.nomeRestaurante, cnpj: dados.cnpj, cep: dados.cep, email: dados.email, telefone: dados.telefone, endereco: dados.endereco, cidade: dados.cidade, estado: dados.estado} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Alterado com sucesso ! "+ resultPut);
+          res.status(201).send("Alterado");
+        }
+        else{
+          console.log("Erro ao Alterar restaurante: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("error: " + err);
+      res.send(404).send("ERROR");
+    }
+  });
+})
+
 app.delete('/apihestia/funcionario/delete', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
