@@ -208,7 +208,7 @@ app.put('/apihestia/restaurante/editar', function(req,res){
   var o_id = new ObjectID(dados.id);
   collection.findOne({_id: o_id}, function(err,item){
     if(!err){
-      collection.updateOne({_id: o_id}, {$set: {nomerestaurante: dados.nomeRestaurante, cnpj: dados.cnpj, cep: dados.cep, email: dados.email, telefone: dados.telefone, endereco: dados.endereco, cidade: dados.cidade, estado: dados.estado} }, function(errPut, resultPut) {
+      collection.updateOne({_id: o_id}, {$set: {nomerestaurante: dados.nomerestaurante, cnpj: dados.cnpj, cep: dados.cep, email: dados.email, telefone: dados.telefone, endereco: dados.endereco, cidade: dados.cidade, estado: dados.estado} }, function(errPut, resultPut) {
         if(!errPut){
           console.log("Alterado com sucesso ! "+ resultPut);
           res.status(201).send("Alterado");
