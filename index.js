@@ -343,7 +343,7 @@ app.post("/apihestia/cardapio/novo", function(req,res){
       jsonCardapio.nome = params.cardapio;
       jsonCardapio.categorias = [{
         'nome': "Pratos Prinicipais",
-        'categorias': []
+        'pratos': []
       }];
       jsonCardapio.acompanhamentos = [];
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
