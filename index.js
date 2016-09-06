@@ -501,6 +501,7 @@ app.post("/apihestia/prato", function(req,res){
   var nomeCardapio = params.cardapio;
   var nomeCategoria = params.categoria;
   var prato = JSON.parse(params.prato);
+  var editar = params.editar;
 
   collection.findOne({_id: idEstabelecimento}, function(error, result){
     if(!error){
@@ -513,15 +514,25 @@ app.post("/apihestia/prato", function(req,res){
         if(arrayCardapio[x].nome == nomeCardapio){
           for(y in arrayCardapio[x].categorias){
             if(arrayCardapio[x].categorias[y].nome == nomeCategoria){
-              arrayCardapio[x].categorias[y].pratos.push(prato);
-              break;
+              if(editar != ""){
+                for(z in arrayCardapio[x].categorias[y].pratos){
+                  if(arrayCardapio[x].categorias[y].pratos[z].nome == editar){
+                    arrayCardapio[x].categorias[y].pratos.splice(z,1);
+                    arrayCardapio[x].categorias[y].pratos.push(prato);
+                    break;
+                  }
+                }
+              }else{
+                arrayCardapio[x].categorias[y].pratos.push(prato);
+                break;
+              }
             }
           }
         }
       }
       collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
         if(!errPut){
-          console.log("Cadastro de cardapio Realizado com sucesso !");
+          console.log("Prato adicionado/atualizado Realizado com sucesso !");
           res.status(201).send("Cadastrado");
         }else{
           console.log("Erro ao cadastrar cardapio: " + errPut);
