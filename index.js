@@ -139,7 +139,8 @@ app.get('/apihestia/login', function(req,res){
         console.log("Usuario autorizado");
         var aux={
           nome: item.nome,
-          restaurante: item.restaurante
+          restaurante: item.restaurante,
+          privilegio: item.privilegio
         };
         res.status(302).send(aux);
       }
