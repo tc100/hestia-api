@@ -284,7 +284,7 @@ app.put('/apihestia/funcionario/editar', function(req,res){
         restauranteId = item.restaurante.toString();
         flag = true;
       }
-      collection.updateOne({_id: o_id}, {$set: {nome: dados.nome, login: dados.login, senha: dados.senha} }, function(errPut, resultPut) {
+      collection.updateOne({_id: o_id}, {$set: {nome: dados.nome, login: dados.login, senha: dados.senha, privilegio: dados.privilegio} }, function(errPut, resultPut) {
         if(!errPut){
           console.log("Alterado com sucesso ! "+ resultPut);
           if(flag){
