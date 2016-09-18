@@ -329,6 +329,44 @@ app.put('/apihestia/funcionario/editar', function(req,res){
     }
   });
 })
+//clonar cardapio /apihestia/cardapio/clonar
+app.post("/apihestia/cardapio/clonar", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio;
+      nomeCardapio = params.nome_clonar;
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      for(x in arrayCardapio){
+        if(arrayCardapio[x].nome == nomeCardapio){
+          cardapio = JSON.parse(JSON.stringify(arrayCardapio[x]));
+          break;
+        }
+      }
+      cardapio.nome = params.novo_cardapio;
+      arrayCardapio.push(cardapio);
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Cadastro de cardapio Realizado com sucesso !");
+          res.status(201).send(cardapio);
+        }else{
+          console.log("Erro ao cadastrar cardapio: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao cadastrar cardapio: " + errPut);
+      res.status(400).send("Fail");
+    }
+  });
+});
 
 //adicionar novo cardapio
 app.post("/apihestia/cardapio/novo", function(req,res){
