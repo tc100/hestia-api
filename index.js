@@ -36,7 +36,7 @@ mongodb.connect(function(database){
 
 //Cadastro do estabelecimento e primeiro funcionario
 app.post('/apihestia/estabelecimento', function(req,res){
-
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var idEstabelecimento;
@@ -44,6 +44,7 @@ app.post('/apihestia/estabelecimento', function(req,res){
   var infoEstabelecimento = JSON.parse(params.cadastro);
   var infoFuncionario = JSON.parse(params.funcionario);
   var collection = db.collection(collections.estabelecimento);
+  infoEstabelecimento.data = time;
   collection.insertOne(infoEstabelecimento, function(err, result) {
     if(!err){
       idEstabelecimento = result.insertedId;
@@ -56,7 +57,8 @@ app.post('/apihestia/estabelecimento', function(req,res){
           var idFuncionario = resultFunc.insertedId;
           var func = {
             "nome": nomeFuncionario,
-            "id": idFuncionario
+            "id": idFuncionario,
+            "data": time
           };
           var funcionarios = [];
           funcionarios.push(func);
@@ -83,6 +85,7 @@ app.post('/apihestia/estabelecimento', function(req,res){
 });
 
 app.post('/apihestia/funcionario', function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.funcionario);
@@ -99,7 +102,8 @@ app.post('/apihestia/funcionario', function(req,res){
           var funcionarios = [];
           var func = {
             "nome": dados.nome,
-            "id": idFuncionario
+            "id": idFuncionario,
+            "data": time
           };
           for(x in result.funcionarios){
             funcionarios.push(result.funcionarios[x]);
@@ -331,6 +335,7 @@ app.put('/apihestia/funcionario/editar', function(req,res){
 })
 //clonar cardapio /apihestia/cardapio/clonar
 app.post("/apihestia/cardapio/clonar", function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
@@ -351,6 +356,7 @@ app.post("/apihestia/cardapio/clonar", function(req,res){
         }
       }
       cardapio.nome = params.novo_cardapio;
+      cardapio.data = time;
       arrayCardapio.push(cardapio);
       collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
         if(!errPut){
@@ -370,6 +376,7 @@ app.post("/apihestia/cardapio/clonar", function(req,res){
 
 //adicionar novo cardapio
 app.post("/apihestia/cardapio/novo", function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
@@ -384,6 +391,7 @@ app.post("/apihestia/cardapio/novo", function(req,res){
         'nome': "Pratos Prinicipais",
         'pratos': []
       }];
+      jsonCardapio.data = time;
       jsonCardapio.acompanhamentos = [];
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
         arrayCardapio = result.cardapios;
@@ -455,7 +463,9 @@ app.get("/apihestia/cardapio", function(req,res){
   });
 })
 
+//add acompanhamento
 app.post("/apihestia/acompanhamento", function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
@@ -466,12 +476,16 @@ app.post("/apihestia/acompanhamento", function(req,res){
     if(!error){
       var arrayCardapio = [];
       var cardapio = "";
+      var acompanhamento = {};
+      acompanhamento.nome = params.acompanhamento;
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
         arrayCardapio = result.cardapios;
       }
       for(x in arrayCardapio){
         if(arrayCardapio[x].nome == nomeCardapio){
-          arrayCardapio[x].acompanhamentos.push(params.acompanhamento);
+          acompanhamento.nome = params.acompanhamento;
+          acompanhamento.data = time;
+          arrayCardapio[x].acompanhamentos.push(acompanhamento);
           break;
         }
       }
@@ -492,6 +506,7 @@ app.post("/apihestia/acompanhamento", function(req,res){
 })
 
 app.post("/apihestia/categoria", function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
@@ -507,7 +522,8 @@ app.post("/apihestia/categoria", function(req,res){
       }
       var categoria={
         'nome': params.categoria,
-        'pratos': []
+        'pratos': [],
+        'data': time
       };
       for(x in arrayCardapio){
         if(arrayCardapio[x].nome == nomeCardapio){
@@ -532,6 +548,7 @@ app.post("/apihestia/categoria", function(req,res){
 })
 
 app.post("/apihestia/prato", function(req,res){
+  var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var collection = db.collection(collections.estabelecimento);
