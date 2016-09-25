@@ -10,6 +10,7 @@ var estabelecimento = require('./routes/estabelecimento');
 var cardapio = require('./routes/cardapio');
 var funcionario = require('./routes/funcionario');
 var mongodb = require('./routes/database');
+var cfenv = require('cfenv');
 
 var db;
 var server;
@@ -19,17 +20,26 @@ var collections = {
   "cardapio": "cardapio",
 };
 
+var appEnv = cfenv.getAppEnv();
+
+// start server on the specified port and binding host
+
+
 mongodb.connect(function(database){
   if(database != null){
     db = database;
-    server = app.listen(8080, function(){
-      console.log('Up, running and ready for action!');
+    server = app.listen(appEnv.port, '0.0.0.0', function() {
+      console.log("server starting on " + appEnv.url);
     });
   }else{
     console.log("Não conectou no banco");
   }
 });
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
 
 //CAMINHOS PARA REQUISIÇÕES
 
@@ -82,6 +92,15 @@ app.post('/apihestia/estabelecimento', function(req,res){
     }
   });
 
+});
+
+app.get('/apihestia/estabelecimentos', function(req,res){
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  collection.find({}).toArray(function(err, docs) {
+    console.log("Found the following records");
+    res.send(docs);
+  })
 });
 
 app.post('/apihestia/funcionario', function(req,res){
