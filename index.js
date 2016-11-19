@@ -491,18 +491,19 @@ app.post("/apihestia/acompanhamento", function(req,res){
   var ObjectID = require('mongodb').ObjectID;
   var idEstabelecimento = new ObjectID(params.restaurante);
   var nomeCardapio = params.cardapio;
+  console.log(params.acompanhamento);
   collection.findOne({_id: idEstabelecimento}, function(error, result){
     if(!error){
       var arrayCardapio = [];
       var cardapio = "";
       var acompanhamento = {};
-      acompanhamento.nome = params.acompanhamento;
+      acompanhamento.nome = JSON.parse(params.acompanhamento);
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
         arrayCardapio = result.cardapios;
       }
       for(x in arrayCardapio){
         if(arrayCardapio[x].nome == nomeCardapio){
-          acompanhamento.nome = params.acompanhamento;
+          acompanhamento = JSON.parse(params.acompanhamento);
           acompanhamento.data = time;
           arrayCardapio[x].acompanhamentos.push(acompanhamento);
           break;
