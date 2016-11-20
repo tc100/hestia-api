@@ -525,6 +525,48 @@ app.post("/apihestia/acompanhamento", function(req,res){
   });
 })
 
+app.post("/apihestia/deleteAcompanhamento", function(req,res){
+  var time = new Date().getTime();
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  var nomeCardapio = params.cardapio;
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio = "";
+      var acompanhamento = params.acompanhamento;
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      for(x in arrayCardapio){
+        if(arrayCardapio[x].nome == nomeCardapio){
+          for(y in arrayCardapio[x].acompanhamentos){
+            if(arrayCardapio[x].acompanhamentos[y].nome == acompanhamento){
+              arrayCardapio[x].acompanhamentos.splice(y,1);
+              break;
+            }
+          }
+        }
+      }
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Acompanhamento deletado com sucesso !");
+          res.status(201).send("Deletado");
+        }else{
+          console.log("Erro ao cadastrar cardapio: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
 app.post("/apihestia/categoria", function(req,res){
   var time = new Date().getTime();
   var parsedURL = URL.parse(req.url,true);
