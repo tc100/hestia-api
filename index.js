@@ -621,6 +621,56 @@ app.post("/apihestia/prato", function(req,res){
     }
   });
 })
+
+app.post("/apihestia/deletePrato", function(req,res){
+  var time = new Date().getTime();
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  var nomeCardapio = params.cardapio;
+  var nomeCategoria = params.categoria;
+  var prato = JSON.parse(params.prato);
+
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio = "";
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      for(x in arrayCardapio){
+        if(arrayCardapio[x].nome == nomeCardapio){
+          for(y in arrayCardapio[x].categorias){
+            if(arrayCardapio[x].categorias[y].nome == nomeCategoria){
+              for(z in arrayCardapio[x].categorias[y].pratos){
+                if(arrayCardapio[x].categorias[y].pratos[z].nome == prato.nome){
+                  arrayCardapio[x].categorias[y].pratos.splice(z,1);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Prato deletado com sucesso !");
+          res.status(201).send("Deletado");
+        }else{
+          console.log("Erro ao Deletar prato: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
+
 /*
 var server = http.createServer(function (req, res) {
      parsedURL = URL.parse(req.url, true);
