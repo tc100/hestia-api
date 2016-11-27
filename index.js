@@ -52,6 +52,9 @@ app.post('/apihestia/estabelecimento', function(req,res){
   var idEstabelecimento;
 //ADD ESTABELECIMENTO
   var infoEstabelecimento = JSON.parse(params.cadastro);
+  infoEstabelecimento.avaliacao = 0;
+  infoEstabelecimento.comentario = 0;
+  infoEstabelecimento.comentarios = [];
   var infoFuncionario = JSON.parse(params.funcionario);
   var collection = db.collection(collections.estabelecimento);
   infoEstabelecimento.data = time;
@@ -645,6 +648,68 @@ app.post("/apihestia/deleteCategoria", function(req,res){
       });
     }else{
       console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
+//get all comentarios
+app.get("/apihestia/comentarios", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayComentarios = [];
+      if(typeof result.comentarios != "undefined" && result.comentarios != null && result.comentarios.length != 0){
+        arrayComentarios = result.comentarios;
+      }
+      res.status(201).send(arrayComentarios);
+    }else{
+      console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+});
+
+//adicionar novo cardapio
+app.post("/apihestia/comentarios", function(req,res){
+  var time = new Date().getTime();
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayComentarios = [];
+      var avaliacao = 0;
+      var num = 0;
+      if(typeof result.comentarios != "undefined" && result.comentarios != null && result.comentarios.length != 0){
+        arrayComentarios = result.comentarios;
+        num = result.comentario;
+        avaliacao = result.avaliacao;
+      }
+      var comentario = JSON.parse(params.comentario);
+      console.log(params.comentario);
+      avaliacao = ((avaliacao*num)+comentario.nota)/(num+1);
+      avaliacao = Math.round(avaliacao*100)/100;
+      num = num + 1;
+      arrayComentarios.push(comentario);
+      console.log(JSON.stringify(arrayComentarios));
+      collection.updateOne({_id: idEstabelecimento}, {$set: {comentarios: arrayComentarios, avaliacao:avaliacao, comentario:num} }, function(errPut, resultPut) {
+        if(!errPut){
+          console.log("Comentario Realizado com sucesso !");
+          res.status(201).send("Cadastrado");
+        }else{
+          console.log("Erro ao comentar: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao comentar: " + errPut);
       res.status(400).send("Fail");
     }
   });
