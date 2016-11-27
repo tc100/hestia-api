@@ -693,12 +693,10 @@ app.post("/apihestia/comentarios", function(req,res){
         avaliacao = result.avaliacao;
       }
       var comentario = JSON.parse(params.comentario);
-      console.log(params.comentario);
       avaliacao = ((avaliacao*num)+comentario.nota)/(num+1);
       avaliacao = Math.round(avaliacao*100)/100;
       num = num + 1;
       arrayComentarios.push(comentario);
-      console.log(JSON.stringify(arrayComentarios));
       collection.updateOne({_id: idEstabelecimento}, {$set: {comentarios: arrayComentarios, avaliacao:avaliacao, comentario:num} }, function(errPut, resultPut) {
         if(!errPut){
           console.log("Comentario Realizado com sucesso !");
