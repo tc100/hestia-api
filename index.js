@@ -50,7 +50,7 @@ app.post('/apihestia/estabelecimento', function(req,res){
   var parsedURL = URL.parse(req.url,true);
   var params = parsedURL.query;
   var idEstabelecimento;
-//ADD ESTABELECIMENTO
+  //ADD ESTABELECIMENTO
   var infoEstabelecimento = JSON.parse(params.cadastro);
   infoEstabelecimento.avaliacao = 0;
   infoEstabelecimento.comentario = 0;
@@ -103,6 +103,46 @@ app.get('/apihestia/estabelecimentos', function(req,res){
   collection.find({}).toArray(function(err, docs) {
     console.log("Found the following records");
     res.send(docs);
+  })
+});
+
+app.get('/apihestia/verificarCnpj', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var cnpj = params.cnpj;
+  var collection = db.collection(collections.estabelecimento);
+  var flag = false;
+
+  collection.find({}).toArray(function(err, docs) {
+    for(x in docs){
+      console.log("cnpj: " + docs[x].cnpj + " E " + cnpj);
+      if(docs[x].cnpj == cnpj.toString()){
+        flag = true;
+        break;
+      }
+    }
+    if(flag){
+      res.send("JAEXISTE");
+    }else{
+      res.send("NAOEXISTE")
+    }
+  })
+});
+
+app.get('/apihestia/verificarLogin', function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var login = params.login;
+  var collection = db.collection(collections.funcionario);
+  var flag = false;
+
+  collection.find({"login": login}).toArray(function(err, docs) {
+    console.log("Found the following records: " + JSON.stringify(docs));
+    if(docs.length > 0){
+      res.send("JAEXISTE");
+    }else{
+      res.send("NAOEXISTE")
+    }
   })
 });
 
@@ -451,6 +491,24 @@ app.get("/apihestia/cardapios", function(req,res){
       res.status(201).send(arrayCardapio);
     }else{
       console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+});
+
+//get nome estabelecimento
+app.get("/apihestia/getNomeEstabelecimento", function(req,res){
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var nomeRestaurante;
+      nomeRestaurante = result.nomerestaurante;
+      res.status(201).send(nomeRestaurante);
+    }else{
       res.status(400).send("Fail");
     }
   });
@@ -815,39 +873,3 @@ app.post("/apihestia/deletePrato", function(req,res){
     }
   });
 })
-
-
-/*
-var server = http.createServer(function (req, res) {
-     parsedURL = URL.parse(req.url, true);
-     var path = parsedURL.pathname;
-     //console.log("path: " + JSON.stringify(parsedURL));
-     var query = parsedURL.query;
-     //console.log("query: " + JSON.stringify(query));
-    // var teste = JSON.parse(query.cadastro);
-
-     switch (path) {
-       case '/apihestia/estabelecimento':
-           if (query != null) {
-              var cadastro = JSON.parse(query.cadastro);
-              var funcionarioIns = JSON.parse(query.funcionario);
-              console.log("funcionario: "+JSON.stringify(funcionarioIns));
-              console.log("estabelecimento: "+JSON.stringify(cadastro));
-              funcionario.inserirFuncionario(funcionarioIns);
-              estabelecimento.fazerCadastro(cadastro);
-              res.writeHead(200);
-              res.end("OK");
-           }
-           break;
-        case '/apihestia/cardapio':
-
-          break;
-        case '/apihestia/funcionario':
-
-          break;
-
-       default:
-        res.writeHead(400);
-        res.end('Caminho não encontrado !');
-    }
-});*/
