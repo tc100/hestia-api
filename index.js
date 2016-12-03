@@ -22,9 +22,6 @@ var collections = {
 
 var appEnv = cfenv.getAppEnv();
 
-// start server on the specified port and binding host
-
-
 mongodb.connect(function(database){
   if(database != null){
     db = database;
@@ -360,12 +357,9 @@ app.put('/apihestia/funcionario/editar', function(req,res){
           console.log("Alterado com sucesso ! "+ resultPut);
           if(flag){
             var collection2 = db.collection(collections.estabelecimento);
-            console.log("id: " + restauranteId);
             collection2.findOne({_id: restauranteId}, function(err2,item2){
-              console.log("item2: " + JSON.stringify(item2));
               if(!err2){
                 for(x in item2.funcionarios){
-                  console.log("item2.funcionarios: " + JSON.stringify(item2.funcionarios[x]));
                   if(item.nome == item2.funcionarios[x].nome){
                     item2.funcionarios.splice(x,1);
                     var func = {
