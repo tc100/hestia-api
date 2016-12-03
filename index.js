@@ -203,12 +203,17 @@ app.get('/apihestia/login', function(req,res){
         res.status(404).send("NOTAUTHORIZED")
       }else{
         console.log("Usuario autorizado");
-        var aux={
-          nome: item.nome,
-          restaurante: item.restaurante,
-          privilegio: item.privilegio
-        };
-        res.status(302).send(aux);
+        if(typeof item.ativo == "undefined" || item.ativo != false){
+          var aux={
+            nome: item.nome,
+            restaurante: item.restaurante,
+            privilegio: item.privilegio
+          };
+          res.status(302).send(aux);
+        }else{
+          console.log("Usuario nao autorizado");
+          res.status(404).send("NOTAUTHORIZED")
+        }
       }
     }else{
       console.log("err: " + err);
