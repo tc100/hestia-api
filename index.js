@@ -619,7 +619,7 @@ app.post("/apihestia/editarAtivoCardapio", function(req,res){
       for(x in arrayCardapio){
         if(params.ativo){
           if(arrayCardapio[x].nome != nomeCardapio){
-            arrayCardapio[x].ativo = false;
+            arrayCardapio[x].ativo = "false";
           }
         }
         if(arrayCardapio[x].nome == nomeCardapio){
