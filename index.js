@@ -427,6 +427,7 @@ app.post("/apihestia/cardapio/clonar", function(req,res){
       }
       cardapio.nome = params.novo_cardapio;
       cardapio.data = time;
+      cardapio.ativo = false;
       arrayCardapio.push(cardapio);
       collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
         if(!errPut){
@@ -465,6 +466,11 @@ app.post("/apihestia/cardapio/novo", function(req,res){
       jsonCardapio.acompanhamentos = [];
       if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
         arrayCardapio = result.cardapios;
+      }
+      if(arrayCardapio.length == 0 ){
+        jsonCardapio.ativo = true;
+      }else{
+        jsonCardapio.ativo = false;
       }
       arrayCardapio.push(jsonCardapio);
       collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
@@ -589,6 +595,47 @@ app.post("/apihestia/acompanhamento", function(req,res){
       });
     }else{
       console.log("Erro ao pegar cardapios: " + error);
+      res.status(400).send("Fail");
+    }
+  });
+})
+
+app.post("/apihestia/editarAtivoCardapio", function(req,res){
+  var time = new Date().getTime();
+  var parsedURL = URL.parse(req.url,true);
+  var params = parsedURL.query;
+  var collection = db.collection(collections.estabelecimento);
+  var ObjectID = require('mongodb').ObjectID;
+  var idEstabelecimento = new ObjectID(params.restaurante);
+  var nomeCardapio = params.cardapio;
+  collection.findOne({_id: idEstabelecimento}, function(error, result){
+    if(!error){
+      var arrayCardapio = [];
+      var cardapio = "";
+      if(typeof result.cardapios != "undefined" && result.cardapios != null && result.cardapios.length != 0){
+        arrayCardapio = result.cardapios;
+      }
+      var flag
+      for(x in arrayCardapio){
+        if(params.ativo){
+          if(arrayCardapio[x].nome != nomeCardapio){
+            arrayCardapio[x].ativo = false;
+          }
+        }
+        if(arrayCardapio[x].nome == nomeCardapio){
+          arrayCardapio[x].ativo = params.ativo;
+        }
+      }
+      collection.updateOne({_id: idEstabelecimento}, {$set: {cardapios: arrayCardapio} }, function(errPut, resultPut) {
+        if(!errPut){
+          res.status(201).send("Alterado");
+        }else{
+          console.log("Erro ao des/ativar cardapio: " + errPut);
+          res.status(400).send("Fail");
+        }
+      });
+    }else{
+      console.log("Erro ao des/ativar cardapios: " + error);
       res.status(400).send("Fail");
     }
   });
