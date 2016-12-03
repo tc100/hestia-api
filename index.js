@@ -297,13 +297,13 @@ app.delete('/apihestia/funcionario/delete', function(req,res){
   var params = parsedURL.query;
   var collection = db.collection(collections.funcionario);
   var idFuncionario = params.id;
-  var cnpj = params.cnpj;
   var ObjectID = require('mongodb').ObjectID;
   var o_id = new ObjectID(idFuncionario);
+  var idRestaurante = new ObjectID(params.idRestaurante);
   collection.updateOne({_id: o_id}, {$set: {ativo: false} }, function(errPut, resultPut) {
     if(!errPut){
       var collection2 = db.collection(collections.estabelecimento);
-      collection2.findOne({cnpj:cnpj}, function(err, item){
+      collection2.findOne({_id: idRestaurante}, function(err, item){
         if(!err){
           for(x in item.funcionarios){
             if(item.funcionarios[x].id == idFuncionario){
@@ -312,7 +312,7 @@ app.delete('/apihestia/funcionario/delete', function(req,res){
               break;
             }
           }
-          collection2.updateOne({cnpj: cnpj}, {$set: {funcionarios: item.funcionarios} }, function(errPut2, resultPut2) {
+          collection2.updateOne({_id: idRestaurante}, {$set: {funcionarios: item.funcionarios} }, function(errPut2, resultPut2) {
             if(!errPut2){
               console.log("funcionario desativado");
               res.status(201).send("desativado");
@@ -347,7 +347,7 @@ app.put('/apihestia/funcionario/editar', function(req,res){
   collection.findOne({_id: o_id}, function(err,item){
     if(!err){
       if(item.nome != dados.nome){
-        restauranteId = item.restaurante.toString();
+        restauranteId = new ObjectID(item.restaurante.toString());
         flag = true;
       }
       collection.updateOne({_id: o_id}, {$set: {nome: dados.nome, login: dados.login, senha: dados.senha, privilegio: dados.privilegio} }, function(errPut, resultPut) {
@@ -355,9 +355,12 @@ app.put('/apihestia/funcionario/editar', function(req,res){
           console.log("Alterado com sucesso ! "+ resultPut);
           if(flag){
             var collection2 = db.collection(collections.estabelecimento);
+            console.log("id: " + restauranteId);
             collection2.findOne({_id: restauranteId}, function(err2,item2){
-              if(!err){
+              console.log("item2: " + JSON.stringify(item2));
+              if(!err2){
                 for(x in item2.funcionarios){
+                  console.log("item2.funcionarios: " + JSON.stringify(item2.funcionarios[x]));
                   if(item.nome == item2.funcionarios[x].nome){
                     item2.funcionarios.splice(x,1);
                     var func = {
@@ -367,8 +370,8 @@ app.put('/apihestia/funcionario/editar', function(req,res){
                     item2.funcionarios.push(func);
                   }
                 }
-                collection2.updateOne({cnpj: restauranteId}, {$set: {funcionarios: item2.funcionarios}}, function(errPut2, resultPut2) {
-                  if(!err){
+                collection2.updateOne({_id: restauranteId}, {$set: {funcionarios: item2.funcionarios}}, function(errPut2, resultPut2) {
+                  if(!errPut2){
                     console.log("estabelecimento alterado");
                     res.status(201).send("Alterado");
                   }else{
